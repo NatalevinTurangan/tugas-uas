@@ -1,67 +1,68 @@
 import heapq
+queue = []
 from datetime import datetime, timedelta
 
-queue = []  
-doctors = {}  
-patient_records = {} 
+antrian = []  
+dokter = {}  
+rekam_pasien = {} 
 
-def add_doctor(name, poli):
-    if poli not in doctors:
-        doctors[poli] = []
-    doctors[poli].append({"name": name, "status": "available"})
-    print(f"Dokter {name} ditambahkan ke poli {poli}.")
+def tambah_dokter(nama, poli):
+    if poli not in dokter:
+        dokter[poli] = []
+    dokter[poli].append({"nama": nama, "status": "tersedia"})
+    print(f"Dokter {nama} ditambahkan ke poli {poli}.")
 
-def add_patient(name, urgency, poli):
-    arrival_time = datetime.now()
-    heapq.heappush(queue, (-urgency, arrival_time, poli, name))
-    print(f"Pasien {name} ditambahkan ke antrian poli {poli} dengan prioritas {urgency}.")
+def masukan_pasien(nama, status, poli):
+    waktu_kedatangan = datetime.now()
+    heapq.heappush(antrian, (-status, waktu_kedatangan, poli, nama))
+    print(f"Pasien {nama} ditambahkan ke antrian poli {poli} dengan prioritas {status}.")
 
 def process_patient():
-    if not queue:
+    if not antrian:
         print("Antrian kosong.")
         return
-    urgency, arrival_time, poli, name = heapq.heappop(queue)
-    doctor = next((d for d in doctors.get(poli, []) if d["status"] == "available"), None)
+    status, waktu_kedatangan, poli, nama = heapq.heappop(antrian)
+    doctor = next((d for d in dokter.get(poli, []) if d["status"] == "tersedia"), None)
     if doctor:
         doctor["status"] = "busy"
-        patient_records[name] = {"arrival_time": arrival_time, "poli": poli, "status": "In Treatment"}
-        print(f"Pasien {name} sedang dilayani oleh Dr. {doctor['name']} di poli {poli}.")
+        rekam_pasien[nama] = {"waktu_kedatangan": waktu_kedatangan, "poli": poli, "status": "In Treatment"}
+        print(f"Pasien {nama} sedang dilayani oleh Dr. {doctor['nama']} di poli {poli}.")
     else:
-        print(f"Tidak ada dokter tersedia di poli {poli}. Pasien {name} tetap dalam antrian.")
+        print(f"Tidak ada dokter tersedia di poli {poli}. Pasien {nama} tetap dalam antrian.")
 
-def calculate_wait_time(poli):
-    waiting_patients = [p for p in queue if p[2] == poli]
-    avg_time = 15  # waktu rata-rata per pasien 15 menit
-    return len(waiting_patients) * avg_time
+def perkiraan_waktu_tunggu(poli):
+    pasien_menunggu = [p for p in antrian if p[2] == poli]
+    waktu_tunggu = 15  # waktu rata-rata per pasien 15 menit
+    return len(pasien_menunggu) * waktu_tunggu
 
-def update_patient_status(name, status):
-    if name in patient_records:
-        patient_records[name]["status"] = status
-        print(f"Status pasien {name} diperbarui menjadi {status}.")
+def rekam_status_pasien(nama, status):
+    if nama in rekam_pasien:
+        rekam_pasien[nama]["status"] = status
+        print(f"Status pasien {nama} diperbarui menjadi {status}.")
     else:
-        print(f"Pasien {name} tidak ditemukan.")
+        print(f"Pasien {nama} tidak ditemukan.")
 
-def show_queue():
-    if not queue:
+def tampilkan_antrian():
+    if not antrian:
         print("Antrian kosong.")
         return
     print("Antrian pasien:")
-    for urgency, _, poli, name in sorted(queue, key=lambda x: (-x[0], x[1])):
-        print(f"- {name} (Poli: {poli}, Prioritas: {-urgency})")
+    for status, _, poli, nama in sorted(antrian, key=lambda x: (-x[0], x[1])):
+        print(f"- {nama} (Poli: {poli}, Prioritas: {-status})")
 
-def show_doctors():
-    if not doctors:
+def tampilkan_dokter():
+    if not dokter:
         print("Belum ada dokter yang terdaftar.")
         return
     print("Daftar dokter:")
-    for poli, doc_list in doctors.items():
+    for poli, list_dokter in dokter.items():
         print(f"Poli {poli}:")
-        for doc in doc_list:
-            print(f"  - Dr. {doc['name']} ({doc['status']})")
+        for doc in list_dokter:
+            print(f"  - Dr. {doc['nama']} ({doc['status']})")
 
 def main():
     while True:
-        print("\n=== Sistem Manajemen Antrian Pasien ===")
+        print("\n=== Manajemen Antrian Pasien ===")
         print("1. Tambah dokter")
         print("2. Tambah pasien")
         print("3. Proses pasien")
@@ -70,32 +71,32 @@ def main():
         print("6. Tampilkan antrian")
         print("7. Tampilkan dokter")
         print("8. Keluar")
-        choice = input("Pilih opsi: ")
+        pilihan = input("Pilih opsi: ")
 
-        if choice == "1":
-            name = input("Nama dokter: ")
+        if pilihan == "1":
+            nama = input("Nama dokter: ")
             poli = input("Poli: ")
-            add_doctor(name, poli)
-        elif choice == "2":
-            name = input("Nama pasien: ")
-            urgency = int(input("Tingkat urgensi (1-10): "))
+            tambah_dokter(nama, poli)
+        elif pilihan == "2":
+            nama = input("Nama pasien: ")
+            status = int(input("Tingkat urgensi (1-10): "))
             poli = input("Poli: ")
-            add_patient(name, urgency, poli)
-        elif choice == "3":
+            masukan_pasien(nama, status, poli)
+        elif pilihan == "3":
             process_patient()
-        elif choice == "4":
+        elif pilihan == "4":
             poli = input("Poli: ")
-            wait_time = calculate_wait_time(poli)
+            wait_time = perkiraan_waktu_tunggu(poli)
             print(f"Perkiraan waktu tunggu di poli {poli}: {wait_time} menit.")
-        elif choice == "5":
-            name = input("Nama pasien: ")
+        elif pilihan == "5":
+            nama = input("Nama pasien: ")
             status = input("Status baru: ")
-            update_patient_status(name, status)
-        elif choice == "6":
-            show_queue()
-        elif choice == "7":
-            show_doctors()
-        elif choice == "8":
+            rekam_status_pasien(nama, status)
+        elif pilihan == "6":
+            tampilkan_antrian()
+        elif pilihan == "7":
+            tampilkan_dokter()
+        elif pilihan == "8":
             print("Terima kasih telah menggunakan sistem.")
             break
         else:
